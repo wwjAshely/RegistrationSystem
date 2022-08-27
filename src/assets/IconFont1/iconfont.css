@@ -1,0 +1,19 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 3612848 */
+  src: url('iconfont.woff2?t=1661504864615') format('woff2'),
+       url('iconfont.woff?t=1661504864615') format('woff'),
+       url('iconfont.ttf?t=1661504864615') format('truetype');
+}
+
+.iconfont1 {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-exit-full:before {
+  content: "\e97f";
+}
+
