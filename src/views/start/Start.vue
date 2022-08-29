@@ -31,7 +31,11 @@
         methods: {
             Gologin(){
                 //跳转扫码页链接
-                window.location.href = 'https://admin.wangyuan.info/oauth/#/login';
+                // window.location.href = 'https://admin.wangyuan.info/oauth/#/login';
+                localStorage.setItem('currentTitle','当前阶段')
+                this.$router.push({
+                    path:'/index/CurrentStage1/RightItemOn'
+                })
             }
         },
     }

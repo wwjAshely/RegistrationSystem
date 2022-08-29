@@ -2,31 +2,57 @@
 <div>
     <div class="RightItemBox">
         <div class="RightItemTitle">
-            <div>姓名</div>
-            <div>部门</div>
-            <div>年级</div>
-            <div>性别</div>
-            <div>考核进度</div>
-            <div>学院</div>
-            <div>状态</div>
-            <div :style="{'display': (switchMode == '批量模式 关' ? 'none' : 'block')}">
+            <div class="TitleDiv1">姓名</div>
+            <div class="TitleDiv1">部门</div>
+            <div class="TitleDiv1">年级</div>
+            <div class="TitleDiv1">性别</div>
+            <div class="TitleDiv">考核进度</div>
+            <div class="collegebox">学院</div>
+            <div class="statusbox">状态</div>
+            <div class="TitleDiv" :style="{'display': (switchMode == '批量模式 关' ? 'none' : 'block')}">
                 操作
             </div>
             <input type="checkbox" :style="{'display': (switchMode == '批量模式 开' ? 'none' : 'block')}"/>
+            <!-- <el-checkbox 
+                v-model="checked" 
+                :style="{'display': (switchMode == '批量模式 开' ? 'none' : 'block')}"
+                :border="true"
+                size="mini"
+            >
+            </el-checkbox> -->
         </div>
 
-        <div class="RightItem" v-for="(item,index) in rightList" :key="index">
-            <div>{{item.name}}</div>
-            <div>{{item.department}}</div>
-            <div>{{item.grade}}</div>
-            <div>{{item.sex}}</div>
-            <div>{{item.progress}}</div>
-            <div>{{item.college}}</div>
-            <div>{{item.state}}</div>
-            <div>
-                <button class="pass" :style="{'display': (switchMode == '批量模式 关' ? 'none' : 'block')}">通过</button>
-                <button class="nopass" :style="{'display': (switchMode == '批量模式 关' ? 'none' : 'block')}">未通过</button>
-                <input type="checkbox" :style="{'display': (switchMode == '批量模式 开' ? 'none' : 'block')}"/>
+        <div class="RightItem" v-for="item in rightList.slice((queryInfo.pagenum - 1)*queryInfo.pagesize,queryInfo.pagenum * queryInfo.pagesize)" :key="item.id">
+            <div class="RightItemDiv1">{{item.name}}</div>
+            <div class="RightItemDiv1">{{item.department}}</div>
+            <div class="RightItemDiv1">{{item.grade}}</div>
+            <div class="RightItemDiv1">{{item.gender}}</div>
+            <div class="RightItemDiv">{{item.stage}}</div>
+            <div class="collegeBox">{{item.collegeAbbreviation}}</div>
+            <div class="statusBox">{{item.status}}</div>
+            <div class="RightItemDiv">
+                <button 
+                    class="pass" 
+                    :style="{'display': (switchMode == '批量模式 关' ? 'none' : 'block')}"
+                    @mouseup = 'pass($event)'
+                    :data-id="item.id"
+                >
+                    通过
+                </button>
+
+                <button 
+                    class="nopass"  
+                    :style="{'display': (switchMode == '批量模式 关' ? 'none' : 'block')}"
+                    @mouseup = 'nopass($event)'
+                    :data-id="item.id"
+                >
+                    未通过
+                </button>
+                <input 
+                    type="checkbox" 
+                    :style="{'display': (switchMode == '批量模式 开' ? 'none' : 'block')}"
+                    @change="handleCheck(item.id)"
+                />
             </div>
         </div>
     </div>
@@ -39,8 +65,15 @@
                     :current-page="queryInfo.pagenum"
                     :page-size="queryInfo.pagesize"
                     layout="prev, pager, next"
-                    :total="total">
+                    :total="rightList.length">
                 </el-pagination>
+            </div>
+            <div class="totalNumber" :style="{'display': (switchMode == '批量模式 关' ? 'none' : 'block')}">
+                总人数:&nbsp;&nbsp;<span>{{this.$store.state.total}}
+                </span>&nbsp;&nbsp;人
+            </div>
+            <div class="isPass" :style="{'display': (switchMode == '批量模式 开' ? 'none' : 'block')}">
+                已选中1项&nbsp;&nbsp;&nbsp;<span>通过</span>&nbsp;|&nbsp;<span>不通过</span>
             </div>
         </div>
     </div>
@@ -49,20 +82,11 @@
 
 <script>
     import {mapState} from 'vuex';
+    import axios from 'axios'
     export default {
         name: 'RightItemOn',
         data() {
             return {
-                rightList: [
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未通过'},
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未操作'},
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未通过'},
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未通过'},
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未通过'},
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未通过'},
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未通过'},
-                    {name:'陈佳贤',department:'设计',grade:'20',sex:'女',progress:'面试',college:'信息工程学院',state:'未通过'}
-                ],
                 // 获取用户列表的参数对象
                 queryInfo: {
                     query: '',
@@ -71,20 +95,100 @@
                     // 当前每页显示多少条数据
                     pagesize: 8
                 },
-                total: 40,
+                enrollToken: '',
+                checked: true
             }
         },
         computed:{
-            ...mapState(['switchMode'])//从vuex那边获取当前栏目title
+            ...mapState(['switchMode']),//从vuex那边获取当前栏目title
+            ...mapState(['rightList']), //从vuex那边获取右边成员列表数据
+            ...mapState(['total'])
         },
         mounted() {
-           this.$store.state.switchMode = localStorage.getItem('switchMode')
+            this.$store.state.switchMode = localStorage.getItem('switchMode')
+            axios.get('http://124.222.28.28:7788/api/user/getTokenTest?userId=2').then(
+                response => {
+                    localStorage.setItem('enrollToken',response.data.data.enrollToken)
+                    var enrollToken = localStorage.getItem('enrollToken')
+                    axios({
+                        method: 'get',
+                        url: 'http://124.222.28.28:7788/api/user/stage?current=2&stageId=2',
+                        headers:{
+                            enrollToken: enrollToken
+                        }
+                    }).then(
+                        response => {
+                            this.$store.state.rightList = response.data.data.data
+                            this.$store.state.total = response.data.data.data.length
+                        },
+                        error => {
+                            console.log('请求失败了',error);
+                        }
+                    )
+                },
+                error => {
+                    console.log('请求失败了',error.message);
+                }
+            )
         },
         methods: {
             // 监听页码值改变的事件
             handleCurrentChange(newPage){
-                console.log(newPage);
                 this.queryInfo.pagenum = newPage
+            },
+            // 通过
+            pass(event) {
+                var listid = [];
+                listid.push(event.currentTarget.dataset.id);
+                console.log(listid);
+                axios({
+                    method:'post',
+                    url: 'http://124.222.28.28:7788/api/process/updateStatusList',
+                    headers: {
+                        enrollToken: localStorage.getItem('enrollToken')
+                    },
+                    data: {
+                        userIdList: listid,
+                        stageId: this.$store.state.stageId,
+                        status: 1
+                    }
+                }).then(
+                    response => {
+                        console.log('通过',response);
+                    },
+                    error => {
+                        console.log('通过发生错误',error);
+                    }
+                )
+            },
+            // 未通过
+            nopass(event) {
+                var listid = [];
+                listid.push(event.currentTarget.dataset.id);
+                console.log(listid);
+                axios({
+                    method:'post',
+                    url: 'http://124.222.28.28:7788/api/process/updateStatusList',
+                    headers: {
+                        enrollToken: localStorage.getItem('enrollToken')
+                    },
+                    data: {
+                        userIdList: listid,
+                        stageId: this.$store.state.stageId,
+                        status: 2
+                    }
+                }).then(
+                    response => {
+                        console.log('不通过',response);
+                    },
+                    error => {
+                        console.log('通过发生错误',error);
+                    }
+                )
+            },
+            // 勾选事件
+            handleCheck(id){
+                console.log(id);
             }
         }
     }
@@ -95,7 +199,6 @@
         width: calc(86vw - 108px);
         min-width: 1545px;
         height: 666px;
-        background-color: rgb(195, 209, 231);
         border-bottom: 1px solid #797979;
         margin: 0 auto;
     }
@@ -108,8 +211,38 @@
         flex-direction: row;
     }
 
-    .RightItemTitle div {
+    .TitleDiv {
         width: 12.5%;
+        height: 82px;
+        color: #333333;
+        font-size: 25px;
+        font-weight: bold;
+        line-height: 82px;
+        text-align: center;
+    }
+
+    .TitleDiv1 {
+        width: 11%;
+        height: 82px;
+        color: #333333;
+        font-size: 25px;
+        font-weight: bold;
+        line-height: 82px;
+        text-align: center;
+    }
+
+    .collegebox {
+        width: 20%;
+        height: 82px;
+        color: #333333;
+        font-size: 25px;
+        font-weight: bold;
+        line-height: 82px;
+        text-align: center;
+    }
+
+    .statusbox {
+        width: 11%;
         height: 82px;
         color: #333333;
         font-size: 25px;
@@ -121,13 +254,40 @@
     .RightItem {
         width: 100%;
         height: 72px;
-        border-top: 1px solid #AAAAAA;
+        border-bottom: 1px solid #E4E4E4;
         display: flex;
         flex-direction: row;
     }
 
-    .RightItem div {
+    .RightItemDiv {
         width: 12.5%;
+        height: 72px;
+        color: #333333;
+        font-size: 23px;
+        line-height: 72px;
+        text-align: center;
+    }
+
+    .RightItemDiv1 {
+        width: 11%;
+        height: 72px;
+        color: #333333;
+        font-size: 23px;
+        line-height: 72px;
+        text-align: center;
+    }
+
+    .statusBox {
+         width: 11%;
+        height: 72px;
+        color: #333333;
+        font-size: 23px;
+        line-height: 72px;
+        text-align: center;
+    }
+
+    .collegeBox {
+        width: 20%;
         height: 72px;
         color: #333333;
         font-size: 23px;
@@ -147,6 +307,13 @@
         height: 30px;
         margin: 0 auto;
         margin-top: 20px; 
+    }
+
+    .RightItemTitle >>> .el-checkbox {
+        width: 30px;
+        height: 30px;
+        margin: 0 auto;
+        margin-top: 20px;
     }
 
     .pass {
@@ -185,6 +352,8 @@
         width: 86vw;
         height: 141px;
         min-width: 1653px;
+        position: relative;
+        padding-top: 1px;
     }
 
     .pageBox {
@@ -192,5 +361,34 @@
         height:50px;
         margin: 0 auto;
         margin-top: 50px;
+    }
+
+    .totalNumber {
+        width: 180px;
+        height: 30px;
+        position: absolute;
+        right: 85px;
+        top: 25px;
+        font-size: 23px;
+    }
+
+    .totalNumber span {
+        color: #0584CC
+    }
+
+    .isPass {
+        width: 300px;
+        height: 30px;
+        position: absolute;
+        right: 85px;
+        top: 25px;
+        font-size: 23px;
+        color: #333333;
+        cursor:default;
+    }
+
+    .isPass span {
+        color: #0584CC;
+        cursor: pointer;
     }
 </style>

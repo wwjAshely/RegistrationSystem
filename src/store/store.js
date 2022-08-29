@@ -17,6 +17,13 @@ const store = new Vuex.Store({
         currentState:"",//index栏目状态
         switchMode: '', //开关状态
         LOADING: false,//加载页面是否隐藏
+        rightList: '',
+        total:'',
+        dynamicData: '', //获取的动态数据
+        dateTimeStart: '',
+        dateTimeEnd: '',
+        uploadImg: '',
+        stageId: ''
     },
     mutations: {
         showLoading(state){

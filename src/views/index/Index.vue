@@ -7,12 +7,12 @@
         <div class="List">
             <div class="LeftListBox">
 
-                <div class="ItemBox" @click="clickList1">
+                <!-- <div class="ItemBox" @click="clickList1">
                     <div class="LeftItemImg" :style="{'backgroundColor': (currentState == '成员信息' ? '#0694E4' : '#F9F9F9')}">
                         <i class="iconfont MemberIcon" ref="MemberIcon" :style="{'color': (currentState == '成员信息' ? '#fff' : '#666666')}">&#xe656;</i>
                     </div>
                     <div class="LeftItemTitle">成员信息</div>
-                </div>
+                </div> -->
 
                 <div class="ItemBox" @click="clickList2">
                     <div class="LeftItemImg" :style="{'backgroundColor': (currentState == '当前阶段' ? '#0694E4' : '#F9F9F9')}">

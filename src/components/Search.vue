@@ -87,6 +87,7 @@
         width: 305px;
         height: 100%;
         position: relative;
+        /* outline: 1px solid red; */
     }
 
    .choose1 {
