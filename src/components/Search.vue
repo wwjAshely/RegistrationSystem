@@ -63,6 +63,10 @@
 </script>
 
 <style scoped>
+    *{
+		user-select: none;
+	}
+    
    .Search {
         width: 86vw;
         height: 90px;

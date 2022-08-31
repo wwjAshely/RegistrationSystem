@@ -91,6 +91,10 @@
 </script>
 
 <style>
+    *{
+		user-select: none;
+	}
+    
     /* base */
     .HeaderBox{
         width:100vw;

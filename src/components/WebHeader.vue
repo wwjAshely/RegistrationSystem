@@ -42,6 +42,9 @@
 </script>
 
 <style scoped>
+	*{
+		user-select: none;
+	}
     /* .header{
         width: 100vw;
         min-width: 1920px;

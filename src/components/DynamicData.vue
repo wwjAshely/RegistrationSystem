@@ -9,18 +9,18 @@
                         <span class="demonstration">时间：</span>
                         <el-date-picker
                             v-model="value1"
-                            type="daterange"
+                            type="datetimerange"
                             range-separator="—"
                             :start-placeholder="dynamicData.startTime"
                             :end-placeholder="dynamicData.endTime"
-                            :picker-options="instantPick"
+                            @change="instantPick1"
                             size="large"
                         >
                         </el-date-picker>
                         <!-- <input/>&nbsp;&nbsp;&nbsp; — &nbsp;&nbsp;&nbsp;<input/> -->
                     </div>
                     <div class="address">
-                        地点：<input type="text" v-model="addressIpt"/>
+                        地点：<input type="text" v-model="addressIpt" @focus="focusIpt" @blur="blurIpt"/>
                     </div>
                 </div>
 
@@ -53,7 +53,7 @@
                         </div> -->
                     </div>
                     <div class="submit">
-                        <button ref="submitBtn" class="submitBtn" @mousedown="clickDown" @mouseup="clickUp">提交</button>
+                        <button ref="submitBtn" class="submitBtn" @mousedown="clickDown" @mouseup="clickUp" @mouseenter="hoverChange" @mouseleave="clickLeave">提交</button>
                     </div>
                     
                 </div>
@@ -76,43 +76,6 @@
             return {
                 value1:'',
                 addressIpt:'',
-                instantPick:{
-                    onPick:(obj) => {
-                        var a = new Date(obj.minDate)
-                        var Month = a.getMonth() + 1
-                        var Day = a.getDate();
-                        var MonthDate
-                        var DayDate
-                        if(Month < 10) {
-                            MonthDate = '0' + Month;
-                        }else {
-                            MonthDate = Month
-                        }
-                        if(Day < 10) {
-                            DayDate = '0' + Day
-                        }else {
-                            DayDate = Day
-                        }
-                        this.$store.state.dateTimeStart = a.getFullYear() + '-' + MonthDate + '-' + DayDate
-
-                        var b = new Date(obj.maxDate)
-                        var Month2 = b.getMonth() + 1
-                        var Day2 = b.getDate();
-                        var MonthDate2
-                        var DayDate2
-                        if(Month2 < 10) {
-                            MonthDate2 = '0' + Month2;
-                        }else {
-                            MonthDate2 = Month2
-                        }
-                        if(Day2 < 10) {
-                            DayDate2 = '0' + Day2
-                        }else {
-                            DayDate2 = Day2
-                        }
-                        this.$store.state.dateTimeEnd = b.getFullYear() + '-' + MonthDate2 + '-' + DayDate2
-                    }
-                },
                 dialogImageUrl: '',
                 dialogVisible: false,
                 files:[{
@@ -155,11 +118,14 @@
                 this.dialogImageUrl = file.url;
                 this.dialogVisible = true;
             },
+            hoverChange() {
+                this.$refs.submitBtn.style.borderColor = '#c6e2ff'
+            },
             clickDown() {
                 this.$refs.submitBtn.style.borderColor = '#3a8ee6'
             },
             clickUp() {
-                this.$refs.submitBtn.style.borderColor = '#a9a8a8'
+                this.$refs.submitBtn.style.borderColor = '#c6e2ff'
                 console.log(this.$store.state.dateTimeStart);
                 console.log(this.$store.state.dateTimeEnd);
                 console.log(this.addressIpt);
@@ -184,16 +150,70 @@
                     }
                 )
             },
+            clickLeave() {
+                this.$refs.submitBtn.style.borderColor = '#a9a8a8'
+            },
             // 文件状态改变时的钩子
             handleChange(file,fileList) {
                 console.log(file,fileList);
                 this.$store.state.uploadImg = file.url
+            },
+            instantPick1(obj) {
+                var a = obj[0]
+                var Month1 = a.getMonth() + 1
+                var Day1 = a.getDate();
+                var Time1 = a.toLocaleTimeString('chinese',{hour12:false})
+                var MonthDate1
+                var DayDate1
+                if(Month1 < 10) {
+                    MonthDate1 = '0' + Month1;
+                }else {
+                    MonthDate1 = Month1
+                }
+                if(Day1 < 10) {
+                    DayDate1 = '0' + Day1
+                }else {
+                    DayDate1 = Day1
+                }
+                this.$store.state.dateTimeStart = a.getFullYear() + '-' + MonthDate1 + '-' + DayDate1 + ' ' + Time1
+                console.log('有了吗',this.$store.state.dateTimeStart);
+
+
+                var b = obj[1]
+                console.log(b);
+                var Month2 = b.getMonth() + 1
+                var Day2= b.getDate();
+                var Time2 = b.toLocaleTimeString('chinese',{hour12:false})
+                var MonthDate2
+                var DayDate2
+                if(Month2 < 10) {
+                    MonthDate2 = '0' + Month2;
+                }else {
+                    MonthDate2 = Month2
+                }
+                if(Day2 < 10) {
+                    DayDate2 = '0' + Day2
+                }else {
+                    DayDate2 = Day2
+                }
+                this.$store.state.dateTimeEnd = b.getFullYear() + '-' + MonthDate2 + '-' + DayDate2 + ' ' + Time2
+                console.log('有了吗',this.$store.state.dateTimeEnd);
+            },
+            focusIpt(e) {
+                e.currentTarget.style.border="1px solid #6c95c9"
+            },
+            blurIpt(e) {
+                e.currentTarget.style.borderColor="#000"
             }
         }
     }
 </script>
 
 <style scoped>
+    *{
+		user-select: none;
+	}
+    
     .RightList {
         width: calc(100vw - 156px);
         height: 100%;
@@ -214,7 +234,6 @@
         width: 86vw;
         min-width: 1661px;
         height: 921px;
-        outline: 1px solid red;
     }
 
     /* TimeAddress */
@@ -264,6 +283,7 @@
         height: 53px;
         border-radius: 5px;
         font-size: 23px;
+        outline: 0;
     }
 
     /* 时间输入框 */
@@ -273,11 +293,10 @@
         border-radius: 5px;
         font-size: 43px;
         border: 1px solid #797979;
-        color: red;
     }
 
-    .time >>> .el-picker-panel {
-        color: red;
+    .time >>> .el-date-picker__header-label {
+        font-size: 30px;
     }
 
     /* ConsultCode */
@@ -309,7 +328,6 @@
         width: 86vw;
         min-width: 1661px;
         height: 250px;
-        outline: 1px solid green;
         padding-left: 112px;
         box-sizing: border-box;
         display: flex;
@@ -317,7 +335,6 @@
     }
 
     .CodeImgBox {
-        outline: 1px solid green;
         position: relative;
         margin-right: 150px;
         width: 2000px;
@@ -407,7 +424,6 @@
 
     .submitBtn:hover {
         background-color: #ecf5ff;
-        border: 1px solid #c6e2ff;
         color: #47a2ff;
     }
 </style>

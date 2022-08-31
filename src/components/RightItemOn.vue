@@ -51,7 +51,8 @@
                 <input 
                     type="checkbox" 
                     :style="{'display': (switchMode == '批量模式 开' ? 'none' : 'block')}"
-                    @change="handleCheck(item.id)"
+                    :data-id="item.id"
+                    @click="checkboxOnclick"
                 />
             </div>
         </div>
@@ -73,7 +74,9 @@
                 </span>&nbsp;&nbsp;人
             </div>
             <div class="isPass" :style="{'display': (switchMode == '批量模式 开' ? 'none' : 'block')}">
-                已选中1项&nbsp;&nbsp;&nbsp;<span>通过</span>&nbsp;|&nbsp;<span>不通过</span>
+                已选中&nbsp;{{this.$store.state.listId.length}}&nbsp;项&nbsp;&nbsp;&nbsp;
+                <span @click="morePass">通过</span>&nbsp;|&nbsp;
+                <span @click="moreFail">不通过</span>
             </div>
         </div>
     </div>
@@ -102,7 +105,8 @@
         computed:{
             ...mapState(['switchMode']),//从vuex那边获取当前栏目title
             ...mapState(['rightList']), //从vuex那边获取右边成员列表数据
-            ...mapState(['total'])
+            ...mapState(['total']),
+            ...mapState(['listId'])
         },
         mounted() {
             this.$store.state.switchMode = localStorage.getItem('switchMode')
@@ -154,10 +158,90 @@
                     }
                 }).then(
                     response => {
-                        console.log('通过',response);
+                        console.log(response.data.data.data);
+                        axios({
+                            method:'get',
+                            url:`http://124.222.28.28:7788/api/user/stage?current=2&stageId=${this.$store.state.stageId}`,
+                            headers: {
+                                enrollToken: localStorage.getItem('enrollToken')
+                            },
+                        }).then(
+                            response => {
+                                this.$store.state.rightList = response.data.data.data
+                                this.$store.state.total = response.data.data.data.length
+                            }
+                        )
                     },
                     error => {
                         console.log('通过发生错误',error);
+                    }
+                )
+            },
+            // 批量通过
+            morePass() {
+                console.log('批量通过');
+                axios({
+                    method:'post',
+                    url:'http://124.222.28.28:7788/api/process/updateStatusList',
+                    headers:{
+                        enrollToken:localStorage.getItem('enrollToken')
+                    },
+                    data:{
+                        status:1,
+                        userIdList: this.$store.state.listId,
+                    }
+                }).then(
+                    response => {
+                        console.log(response);
+                        axios({
+                            method:'get',
+                            url:`http://124.222.28.28:7788/api/user/stage?current=2&stageId=${this.$store.state.stageId}`,
+                            headers: {
+                                enrollToken: localStorage.getItem('enrollToken')
+                            },
+                        }).then(
+                            response => {
+                                this.$store.state.rightList = response.data.data.data
+                                this.$store.state.total = response.data.data.data.length
+                            }
+                        )
+                    },
+                    error => {
+                        console.log(error);
+                    }
+                )
+            },
+            // 批量不通过
+            moreFail() {
+                console.log('批量不通过');
+                axios({
+                    method:'post',
+                    url:'http://124.222.28.28:7788/api/process/updateStatusList',
+                    headers:{
+                        enrollToken:localStorage.getItem('enrollToken')
+                    },
+                    data:{
+                        status:2,
+                        userIdList: this.$store.state.listId,
+                    }
+                }).then(
+                    response => {
+                        console.log(response);
+                        axios({
+                            method:'get',
+                            url:`http://124.222.28.28:7788/api/user/stage?current=2&stageId=${this.$store.state.stageId}`,
+                            headers: {
+                                enrollToken: localStorage.getItem('enrollToken')
+                            },
+                        }).then(
+                            response => {
+                                this.$store.state.rightList = response.data.data.data
+                                this.$store.state.total = response.data.data.data.length
+                            }
+                        )
+                    },
+                    error => {
+                        console.log(error);
                     }
                 )
             },
@@ -180,6 +264,18 @@
                 }).then(
                     response => {
                         console.log('不通过',response);
+                        axios({
+                            method:'get',
+                            url:`http://124.222.28.28:7788/api/user/stage?current=2&stageId=${this.$store.state.stageId}`,
+                            headers: {
+                                enrollToken: localStorage.getItem('enrollToken')
+                            },
+                        }).then(
+                            response => {
+                                this.$store.state.rightList = response.data.data.data
+                                this.$store.state.total = response.data.data.data.length
+                            }
+                        )
                     },
                     error => {
                         console.log('通过发生错误',error);
@@ -187,14 +283,28 @@
                 )
             },
             // 勾选事件
-            handleCheck(id){
-                console.log(id);
+            checkboxOnclick(e) {
+                if(e.target.checked == true) {
+                    this.$store.state.listId.push(e.currentTarget.dataset.id);
+                }else if(e.target.checked === false){
+                    for(var i=0;i<this.$store.state.listId.length;i++){
+                        if(this.$store.state.listId[i] === e.currentTarget.dataset.id) {
+                            let index = this.$store.state.listId.indexOf(e.currentTarget.dataset.id)
+                            this.$store.state.listId.splice(index,1)
+                            console.log(this.$store.state.listId);
+                        }
+                    }
+                }
             }
         }
     }
 </script>
 
 <style scoped>
+    *{
+		user-select: none;
+	}
+    
    .RightItemBox {
         width: calc(86vw - 108px);
         min-width: 1545px;

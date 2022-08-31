@@ -4,17 +4,35 @@
             <div class="Search">
         <div class="SearchTitle">{{SearchTitle}}</div>
         <div class="SearchCheck">
-            <select class="choose1" @change="chooseDepartment" v-model="department">
+            <select class="choose1" 
+                @change="chooseDepartment" 
+                v-model="department" 
+                @focus="departmentFocus"
+                @blur="departmentBlur"
+                ref="choose1"
+            >
                 <option value="">部门</option>
                 <option v-for="(item,index) in departments" :key="index">{{item.value}}</option>
             </select>
 
-            <select class="choose2" v-model="college" @change="chooseCollege">
+            <select class="choose2" 
+                v-model="college" 
+                @change="chooseCollege"
+                @focus="collegeFocus"
+                @blur="collegeBlur"
+                ref="choose2"
+            >
                 <option value="">学院</option>
                 <option v-for="(item,index) in colleges" :key="index" :college = "item.value">{{item.value}}</option>
             </select>
 
-            <el-select v-model="value" placeholder="请选择" @change="chooseStage">
+            <el-select 
+                v-model="value" 
+                placeholder="请选择阶段" 
+                @change="chooseStage" 
+                @blur="stageBlur"
+                ref="chooseStage"
+            >
                 <el-option
                 v-for="item in options"
                 :key="item.value"
@@ -24,8 +42,24 @@
             </el-select>
         </div>
         <div class="SearchInput">
-            <input type="text" class="SearchIpt" v-model="KeyWord"/>
-            <button class="SearchBtn" @click="searchUsers">搜索</button>
+            <input type="text" 
+                class="SearchIpt" 
+                ref="searchIpt"
+                v-model="KeyWord"
+                @focus="searchIptFocus"
+                @blur="searchIptBlur"
+            />
+            <button 
+                class="SearchBtn" 
+                @click="searchUsers" 
+                @mouseenter="searchEnter" 
+                ref="searchBtn"
+                @mousedown="searchDown"
+                @mouseup="searchUp"
+                @mouseleave="searchLeave"
+                >
+                搜索
+            </button>
         </div>
         <div class="manage">
             <button class="BatchMode">
@@ -57,18 +91,21 @@
                 departmentId: '',
                 options: [{
                     value: '选项1',
+                    label: '报名'
+                    },{
+                    value: '选项2',
                     label: '面试'
                     }, {
-                    value: '选项2',
+                    value: '选项3',
                     label: '一轮考核'
                     }, {
-                    value: '选项3',
+                    value: '选项4',
                     label: '二轮考核'
                     }, {
-                    value: '选项4',
+                    value: '选项5',
                     label: '小比赛'
                     }, {
-                    value: '选项5',
+                    value: '选项6',
                     label: '三轮考核'
                 }],
                 value: '',
@@ -166,6 +203,12 @@
                     }
                 )
             },
+            collegeFocus() {
+                this.$refs.choose2.style.border="2px solid #000"
+            },
+            collegeBlur() {
+                this.$refs.choose2.style.border="1px solid #818181"
+            },
             chooseDepartment() {
                 if(this.department === '设计部'){
                     this.departmentId = '1'
@@ -190,8 +233,33 @@
                     }
                 )
             },
+            departmentFocus() {
+                this.$refs.choose1.style.border="2px solid #000"
+            },
+            departmentBlur() {
+                this.$refs.choose1.style.border="1px solid #818181"
+            },
             chooseStage() {
-                if(this.value === '面试') {
+                if(this.value === '报名') {
+                    this.SearchTitle = '报名'
+                    this.SearchTitleNumber = '1'
+                    this.$store.state.stageId = '1',
+                    axios({
+                        method: 'get',
+                        url: 'http://124.222.28.28:7788/api/user/stage?current=2&stageId=1',
+                        headers:{
+                            enrollToken: localStorage.getItem('enrollToken')
+                        }
+                    }).then(
+                        response => {
+                            this.$store.state.rightList = response.data.data.data
+                            this.$store.state.total = response.data.data.data.length
+                        },
+                        error => {
+                            console.log('请求失败了',error);
+                        }
+                    )
+                }else if(this.value === '面试') {
                     this.SearchTitle = '面试',
                     this.SearchTitleNumber = '2',
                     this.$store.state.stageId = '2',
@@ -294,9 +362,16 @@
                     )
                 }
             },
+            stageBlur() {
+                console.log(this.$refs.chooseStage);
+            },
             // 搜索
             searchUsers() {
-                axios({
+                if(this.KeyWord.trim() === '') {
+                    console.log('输入不能为空');
+                    this.KeyWord = ''
+                } else {
+                    axios({
                     method: 'get',
                     url: `http://124.222.28.28:7788/api/user/search/?current=1&keyword=${this.KeyWord}`,
                     headers:{
@@ -309,12 +384,35 @@
                         this.KeyWord = ''
                     }
                 )
+                }
+            },
+            searchEnter() {
+                this.$refs.searchBtn.style.backgroundColor = 'rgba(5,132,204,0.8)'
+            },
+            searchDown() {
+                this.$refs.searchBtn.style.backgroundColor = 'rgb(5,132,204)'
+            },
+            searchUp() {
+                this.$refs.searchBtn.style.backgroundColor = 'rgba(5,132,204,0.8)'
+            },
+            searchLeave() {
+                this.$refs.searchBtn.style.backgroundColor = 'rgb(5,132,204)'
+            },
+            searchIptFocus() {
+                this.$refs.searchIpt.style.border = "1px solid #90c4f6"
+            },
+            searchIptBlur() {
+                this.$refs.searchIpt.style.border = "1px solid #000"
             }
         }
     }
 </script>
 
 <style scoped>
+    *{
+		user-select: none;
+	}
+
     /* Search */
     .Search {
         width: 86vw;
@@ -351,6 +449,7 @@
         top: 23px;
         font-size: 23px;
         padding-left: 5px;
+        outline: 0;
     }
 
     .choose2 {
@@ -359,20 +458,26 @@
         border-radius: 10px;
         position: absolute;
         top: 23px;
-        left: 200px;
+        left: 180px;
         font-size: 23px;
         padding-left: 5px;
+        outline: 0;
     }
 
     .SearchCheck >>> .el-select {
         height: 48px;
-        width: 150px;
-        border-radius: 10px;
+        width: 160px;
         position: absolute;
         top: 23px;
-        left: 450px;
-        font-size: 23px;
+        left: 440px;
         padding-left: 5px;
+    }
+
+    .SearchCheck >>> .el-input__inner {
+        height: 48px;
+        font-size: 23px;
+        border-radius: 10px;
+        border-color: #818181;
     }
 
     .choose3 {
@@ -401,6 +506,8 @@
         top: 21px;
         box-sizing: border-box;
         font-size: 22px;
+        outline: 0;
+        padding-left: 15px;
     }
 
     .SearchBtn {
@@ -415,6 +522,7 @@
         font-size: 25px;
         color: #fff;
         border: 0px solid #0584CC;
+        cursor: pointer;
     }
 
     .manage {
@@ -432,6 +540,7 @@
         font-size: 18px;
         margin-top: 20px;
         border: 1px solid #797979;
+        cursor: pointer;
     }
 
     .RightList {

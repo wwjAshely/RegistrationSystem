@@ -23,7 +23,8 @@ const store = new Vuex.Store({
         dateTimeStart: '',
         dateTimeEnd: '',
         uploadImg: '',
-        stageId: ''
+        stageId: '',
+        listId: [] //批量操作的上传的id数组
     },
     mutations: {
         showLoading(state){

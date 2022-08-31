@@ -92,6 +92,10 @@
 </script>
 
 <style scoped>
+    *{
+		user-select: none;
+	}
+    
     .RightList {
         width: calc(100vw - 156px);
         height: 100%;
